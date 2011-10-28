@@ -1,0 +1,7 @@
+Implement a Response Time Calculator
+Implement a Request Time HEader
+Implement a Second Timer
+  * Requests per Second
+  * CPU use
+  * Disk use
+Implement a Node Information (To store) etc
