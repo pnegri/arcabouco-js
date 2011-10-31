@@ -87,7 +87,6 @@ Arcabouco.prototype = {
       var query = url.query;
 
       path_name = path_name.replace(/\/$g/,'');
-      if (path_name == '') path_name = '/';
 
       if (global.debugging) {
         console.log('DEBUG: HTTP Request: ' + path_name);
@@ -103,6 +102,16 @@ Arcabouco.prototype = {
       response.respondWith = null;
       response.redirectTo = null;
       response.respondError = null;
+
+      var language = 'en';
+      if (path_name.match(/^\/(([a-z]{1,2})(\-[a-z]{1,2})?)($|\/)/ig)) {
+        var requested_language = RegExp.$1;
+        path_name = path_name.replace('/' + requested_language,'');
+        language = requested_language;
+        console.log('Requested Language: ' + language);
+      }
+
+      if (path_name == '') path_name = '/';
 
       request.addListener('end',
         function onRequest() {
