@@ -1,4 +1,5 @@
 Common = require './common'
+Underscore = require 'underscore'
 require './_monkey-patching.js'
 
 #Common.Http.ServerResponse.prototype.testing = 'BlaBleBli'
@@ -39,6 +40,12 @@ class Arcabouco
     ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
     @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
 
+  mountApplication : ( application ) ->
+    console.log 'App Place Holder'
+
+#  mountApplicationWithObject
+#  mountApplicationWithFile
+
   contructRoutingForPattern : ( pattern ) ->
     params = []
     buildPattern = pattern.replace /\{(.*?)\}/g,
@@ -51,9 +58,9 @@ class Arcabouco
       index : pattern
 
   buildRouting : ->
-    routeToMethod = @routeToMethod.sort().reverse()
+    orderedRouteNames = Underscore.keys( @routeToMethod ).sort().reverse()
     @avaiableRoutes = []
-    for pattern of routeToMethod
+    for pattern in orderedRouteNames 
       @avaiableRoutes.push @contructRoutingForPattern( pattern )
     if global.debugging
       console.log 'DEBUG: buildRouting'
@@ -80,8 +87,7 @@ class Arcabouco
     params = {}
     for index of route.params
       params[ route.params[ index ] ] = args[ parseInt(index)+1 ]
-    for paramName of otherParams
-      params[ paramName ] = otherParams[ paramName ]
+    Underscore.extend( params, otherParams )
     params
 
   callMethodForRoute : ( route, params ) ->
@@ -104,17 +110,19 @@ class Arcabouco
       hasRouted = false
 
       for route in @avaiableRoutes
-        # TODO, see if we can use exec to better readability
-        request.documentRequested.replace( route.regex,
-          ( match ) =>
-            params = @buildParamsForRequest( route, arguments, {
-              request: request
-              response: response
-              route: route.index
-              app: this
-            })
-            hasRouted = @callMethodForRoute( route, params )
-        )
+        routeMatches = route.regex.exec( request.documentRequested )
+        if routeMatches
+          params = @buildParamsForRequest( route, routeMatches, {
+            request  : request
+            response : response
+            route    : route.index
+            app      : this
+          })
+          try        # Execute the method in a sandbox
+            hasRouted = @callMethodForRoute( route, params ) unless hasRouted
+          catch error
+            # Call Bad Robot - Error 500
+            hasRouted = true
         
         if hasRouted
           break
@@ -126,6 +134,9 @@ class Arcabouco
         response.end()
 
   createServer : ( serverPort ) ->
-    Common.Http.createServer( @dispatchRequest.bind( this ) ).listen( serverPort )
+    testServer = Common.Http.createServer( @dispatchRequest.bind( this ) )
+    testServer.listen( serverPort )
+#    testServer.close()
+    testServer
 
 module.exports = Arcabouco
