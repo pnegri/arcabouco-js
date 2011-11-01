@@ -1,6 +1,6 @@
 Common = require './common'
 Underscore = require 'underscore'
-require './_monkey-patching.js'
+require './_monkey-patching'
 
 Haml = require 'haml'
 #Common.Http.ServerResponse.prototype.testing = 'BlaBleBli'
