@@ -25,12 +25,12 @@ class Arcabouco
 
   parseControllerRoutes : ( indexOfController ) ->
     ControllerObject = @controllerInstances[ indexOfController ]
-    return false unless ControllerObject.getRoutes
+    unless ControllerObject.getRoutes
+      return false
 
     controllerRoutes = ControllerObject.getRoutes()
     for path of controllerRoutes
-      method = controllerRoutes[ path ]
-      @addRoutingToMethod path, method, indexOfController
+      @addRoutingToMethod path, controllerRoutes[ path ], indexOfController
   
   loadController      : ( controllerFilename ) ->
     unless controllerFilename.match(/\.js$/gi)
@@ -62,10 +62,6 @@ class Arcabouco
     @avaiableRoutes = []
     for pattern in orderedRouteNames 
       @avaiableRoutes.push @contructRoutingForPattern( pattern )
-    if global.debugging
-      console.log 'DEBUG: buildRouting'
-      console.log @avaiableRoutes
-    true
 
   parseRequest : ( request ) ->
     request.setEncoding 'utf-8'
