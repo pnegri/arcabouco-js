@@ -1,6 +1,6 @@
-Common = require './common'
+Common = require __dirname + '/common'
 Underscore = require 'underscore'
-require './_monkey-patching'
+require __dirname + '/_monkey-patching'
 
 Haml = require 'haml'
 #Common.Http.ServerResponse.prototype.testing = 'BlaBleBli'

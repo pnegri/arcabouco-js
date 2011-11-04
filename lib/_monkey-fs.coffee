@@ -1,4 +1,4 @@
-Common = require './common'
+Common = require __dirname + '/common'
 
 Common.Fs.readdirSyncR = ( directory ) ->
   directory = Common.Path.normalize directory

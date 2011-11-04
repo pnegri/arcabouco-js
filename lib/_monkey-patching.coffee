@@ -1,3 +1,3 @@
 require 'coffee-script'
-Common = require './common'
-require './_monkey-fs'
+Common = require __dirname + '/common'
+require __dirname + '/_monkey-fs'
