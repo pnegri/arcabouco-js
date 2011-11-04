@@ -6,7 +6,7 @@
   "homepage": "http://github.com/pnegri/arcabouco-js",
   "contributors" : [],
   "main" : "./lib/arcabouco.coffee",
-  "directories": }
+  "directories": {
     "lib":"./lib"
   },
   "dependencies" : {
