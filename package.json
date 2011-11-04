@@ -1,8 +1,9 @@
 {
   "name" : "arcabouco-js",
-  "description" : "lightweight frameworks for web applications and services",
-  "version" : "0.3.0",
+  "description" : "scalable microframework in node.js",
+  "version" : "0.0.1",
   "author" : "Patrick Negri <patrick@iugu.com.br>",
+  "homepage": "http://github.com/pnegri/arcabouco-js"
   "contributors" : [],
   "dependencies" : {
     "haml-js": "https://github.com/creationix/haml-js/tarball/master",
@@ -12,6 +13,6 @@
     "async": ">=0.1.12",
     "stylus": ">=0.19.0"
   },
-  "repository" : "",
+  "repository" : "git://github.com/pnegri/arcabouco-js.git",
   "engines" : { "node" : ">= 0.5.0 < 0.7.0" }
 }
