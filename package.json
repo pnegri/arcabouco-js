@@ -5,6 +5,10 @@
   "author" : "Patrick Negri <patrick@iugu.com.br>",
   "homepage": "http://github.com/pnegri/arcabouco-js",
   "contributors" : [],
+  "main" : "./lib/arcabouco.coffee",
+  "directories": }
+    "lib":"./lib"
+  },
   "dependencies" : {
     "haml-js": "https://github.com/creationix/haml-js/tarball/master",
     "i18n": ">=0.3.0",
@@ -13,6 +17,9 @@
     "async": ">=0.1.12",
     "stylus": ">=0.19.0"
   },
-  "repository" : "git://github.com/pnegri/arcabouco-js.git",
-  "engines" : { "node" : ">= 0.5.0 < 0.7.0" }
+  "repository" : {
+    "type":"git",
+    "url":"git://github.com/pnegri/arcabouco-js.git"
+  },
+  "engines" : { "node" : ">= 0.4.0 < 0.7.0" }
 }
