@@ -161,9 +161,13 @@ class Arcabouco
     buildPattern = pattern.replace /\{(.*?)\}/g,
       ( match, sub1 ) ->
         params.push sub1
-        return '([^\/]+?)'
+        return '([^\/]+)'
+    replacer = '([^\/]+)'
+    n = buildPattern.lastIndexOf( replacer )
+    if n >= 0 && n + replacer.length >= buildPattern.length
+      buildPattern = buildPattern.substring(0, n) + "([^$]+)";
     constructedRoute =
-      regex : new RegExp '^' + buildPattern + '(\\/?\$|\\/?\\?.*$)'
+      regex : new RegExp '^' + buildPattern
       params: params
       index : pattern
 
