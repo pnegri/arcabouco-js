@@ -2,7 +2,7 @@ arcabouco = require 'arcabouco-js'
 
 config = {
     baseDirectory: __dirname
-    nodeStatic: 
+    nodeStatic:
       assets:
         cdn:
           config:
@@ -12,7 +12,7 @@ config = {
 
 app = new arcabouco config
 
-app.add require 'screw-node-static'
+app.work require 'screw-node-static'
 app.build()
 
 server = app.createServer()

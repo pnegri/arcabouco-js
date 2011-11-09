@@ -153,7 +153,7 @@ class Arcabouco
 #  mountApplicationWithObject
 #  mountApplicationWithFile
 
-  add: ( ControllerObject ) ->
+  work: ( ControllerObject ) ->
     ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
     @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
 
