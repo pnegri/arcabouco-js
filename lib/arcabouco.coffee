@@ -30,29 +30,35 @@ Common.Http.ServerResponse.prototype.respondWith = ( content, type='text/html', 
 ## START WORKING ON THIS
 Template =
   loadedTemplates : []
+
   ## TODO: Search for Template
+  ## TODO: Modulize template for support multiple files
+
   getTemplate: ( templateFile ) ->
     templateFile = Common.Path.basename templateFile
     unless @loadedTemplates[ templateFile ]
       return false
     @loadedTemplates[ templateFile ]
-  loadTemplate: ( templateFile ) ->
+  loadTemplate: ( templateFile, asTemplateName="" ) ->
     unless templateFile
       return false
     unless templateFile.match /\.haml$/gi
       return false
     baseTemplateFile = Common.Path.basename templateFile
+    if asTemplateName != ""
+      baseTemplateFile = asTemplateName
     template = Common.Fs.readFileSync templateFile, 'utf-8'
     compiledTemplate = Haml.compile template
     optimizedTemplate = Haml.optimize compiledTemplate
     @loadedTemplates[ baseTemplateFile ] = optimizedTemplate
 
-  doRender: ( templateFile, context, params, layout = 'layout.haml' ) ->
+  doRender: ( templateFile, context = this, params = {}, layout = 'layout.haml' ) ->
     template = @getTemplate templateFile
     unless template
       return false
     content = Haml.execute template, context, params
     if layout
+      compiled_layout = @getTemplate layout
       params.content = content
       return Haml.execute layout, context, params
     return content
@@ -85,8 +91,8 @@ class Arcabouco
       console.log 'Configuration doesnt have baseDirectory directive'
       process.exit(1)
 
-    @Template.loadTemplate Common.Path.normalize (__dirname + '/../views/404.haml')
-    @Template.loadTemplate Common.Path.normalize (__dirname + '/../views/500.haml')
+    @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/404.haml'), '404'
+    @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/500.haml'), '500'
 
     setInterval =>
       # TODO: SEPARATE THIS INTO A CLASS
@@ -181,7 +187,7 @@ class Arcabouco
         return '([^\/]+)'
     buildPattern = buildPattern.replaceLast( '([^\/]+)', '([^$]+)' ) 
     constructedRoute =
-      regex : new RegExp '^' + buildPattern
+      regex : new RegExp '^' + buildPattern + '$'
       params: params
       index : pattern
 
@@ -226,13 +232,13 @@ class Arcabouco
       false
 
   respondWithError : ( respond ) ->
-    respond.respondWith @Template.doRender( '500.haml', this, {}, false ), 500
+    respond.respondWith @Template.doRender( '500', this, {}, false ), 500
 
   respondWithTimeout: ( respond ) ->
-    respond.respondWith @Template.doRender( '500.haml', this, {}, false), 504
+    respond.respondWith @Template.doRender( '500', this, {}, false), 504
 
   respondWithNotFound: ( respond ) ->
-    respond.respondWith @Template.doRender( '404.haml', this, {}, false ), 404, 300
+    respond.respondWith @Template.doRender( '404', this, {}, false ), 404, 300
 
   dispatchRequest : ( request, response ) ->
     @parseRequest( request )

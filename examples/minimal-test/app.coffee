@@ -1,6 +1,6 @@
 arcabouco = require 'arcabouco-js'
 
-config = {
+config =
     baseDirectory: __dirname
     nodeStatic:
       assets:
@@ -8,7 +8,6 @@ config = {
           config:
             cache: 0
           directory: __dirname + '/cdn'
-}
 
 app = new arcabouco config
 

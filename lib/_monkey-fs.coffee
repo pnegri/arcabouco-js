@@ -12,5 +12,5 @@ Common.Fs.readdirSyncR = ( directory ) ->
     if stat.isDirectory()
       dirFiles = Common.Fs.readdirSyncR fileWithPath
       if dirFiles.length
-        allFiles.concat dirFiles
+        allFiles = allFiles.concat dirFiles
   allFiles
