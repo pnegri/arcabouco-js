@@ -91,6 +91,8 @@ class Arcabouco
       console.log 'Configuration doesnt have baseDirectory directive'
       process.exit(1)
 
+    global.objects = []
+
     @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/404.haml'), '404'
     @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/500.haml'), '500'
 
@@ -178,6 +180,16 @@ class Arcabouco
           valid = false
         if valid
           @work require file
+
+  registerObject: ( objectName, object ) ->
+    global.objects[ objectName ] = object
+    true
+
+  buildObject: (objectName) ->
+    new (global.objects[ objectName ])
+
+  getRawObjects: () ->
+    global.objects
 
   contructRoutingForPattern : ( pattern ) ->
     params = []
