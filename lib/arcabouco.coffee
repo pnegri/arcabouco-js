@@ -147,19 +147,31 @@ class Arcabouco
     unless controllerFilename.match(/\.js$/gi)
       false
 
+    if controllerFilename.indexOf('.') == 0
+      controllerFilename = @config.baseDirectory + controllerFilename.substring(1)
+
     ControllerObject = require controllerFilename
     ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
     @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
 
-  mountApplication : ( application ) ->
-    console.log 'App Place Holder'
-
-#  mountApplicationWithObject
-#  mountApplicationWithFile
-
   work: ( ControllerObject ) ->
     ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
     @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
+
+  assemble: ( directory ) ->
+    fullPath = Common.Path.normalize( directory )
+    if Common.Path.existsSync( fullPath )
+      files = Common.Fs.readdirSyncR( fullPath )
+      for file in files
+        valid = false
+        if file.match /\.js/gi
+          valid = true
+        if file.match /\.coffee/gi
+          valid = true
+        if file.match /src\//gi
+          valid = false
+        if valid
+          @work require file
 
   contructRoutingForPattern : ( pattern ) ->
     params = []
