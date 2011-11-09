@@ -2,9 +2,6 @@
 testing
 node_modules/
 lib-cov
-examples/
-examples/*/*
-examples/**
 *~
 *.lock
 *.swp
