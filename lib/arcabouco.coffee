@@ -5,7 +5,6 @@ require __dirname + '/_monkey-patching'
 Haml = require 'haml'
 #Common.Http.ServerResponse.prototype.testing = 'BlaBleBli'
 
-
 Common.Http.ServerResponse.prototype.redirectTo = ( url ) ->
   @writeHead 302, { 'Location': url }
   @end()
@@ -86,12 +85,13 @@ class Arcabouco
     @Template.loadTemplate Common.Path.normalize (__dirname + '/../views/500.haml')
 
     setInterval =>
+      # TODO: SEPARATE THIS INTO A CLASS
       @requestsPerSecond = @_requestsCounter
       @_requestsCounter = 0
-#      console.log 'Requests per Second: ' + @requestsPerSecond
-#      console.log 'Mem: ' + Common.Os.totalmem() + ' / ' + Common.Os.freemem()
-#      console.log 'Load AVG: '
-#      console.log Common.Os.loadavg()
+      totalMemory = Common.Os.totalmem()
+      freeMemory = Common.Os.freemem()
+      loadAverage = Common.Os.loadavg()
+
       cpus = Common.Os.cpus()
       user = 0
       nice = 0
@@ -119,11 +119,8 @@ class Arcabouco
       @_lastCPU.idle = idle
       @_lastCPU.irq = irq
       @_lastCPU.total = user+nice+sys+idle+irq
-
 #      console.log (current_user+current_nice+current_sys+current_irq) / current_total
 #      console.log current_idle / current_total
-
-#      console.log Common.Os.cpus()
     , 1000
 
   addRoutingToMethod : ( path, method, indexOfController ) ->
@@ -156,16 +153,17 @@ class Arcabouco
 #  mountApplicationWithObject
 #  mountApplicationWithFile
 
+  add: ( ControllerObject ) ->
+    ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
+    @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
+
   contructRoutingForPattern : ( pattern ) ->
     params = []
     buildPattern = pattern.replace /\{(.*?)\}/g,
       ( match, sub1 ) ->
         params.push sub1
         return '([^\/]+)'
-    replacer = '([^\/]+)'
-    n = buildPattern.lastIndexOf( replacer )
-    if n >= 0 && n + replacer.length >= buildPattern.length
-      buildPattern = buildPattern.substring(0, n) + "([^$]+)";
+    buildPattern = buildPattern.replaceLast( '([^\/]+)', '([^$]+)' ) 
     constructedRoute =
       regex : new RegExp '^' + buildPattern
       params: params
@@ -176,6 +174,9 @@ class Arcabouco
     @avaiableRoutes = []
     for pattern in orderedRouteNames 
       @avaiableRoutes.push @contructRoutingForPattern( pattern )
+
+  build: ->
+    @buildRouting()
 
   parseRequest : ( request ) ->
     request.setEncoding 'utf-8'
@@ -247,14 +248,20 @@ class Arcabouco
         if hasRouted
           break
 
-      # Replace with response.respondWithPageNotFound()
       unless hasRouted
         @respondWithNotFound response
 
-  createServer : ( serverPort ) ->
-    testServer = Common.Http.createServer( @dispatchRequest.bind( this ) )
-    testServer.listen( serverPort )
-#    testServer.close()
-    testServer
+  createServer : ->
+    Common.Http.createServer( @dispatchRequest.bind( this ) )
+
+  createSecureServer: ( privateKey, certificate ) ->
+    crypto = require 'crypto'
+    credentials = crypto.createCredentials {
+      key: privateKey
+      cert: certificate
+    }
+    secureServer = Common.Http.createServer( @dispatchRequest.bind(this) )
+    secureServer.setSecure( credentials )
+    secureServer
 
 module.exports = Arcabouco
