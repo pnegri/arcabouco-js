@@ -11,7 +11,7 @@ Common.Http.ServerResponse.prototype.redirectTo = ( url ) ->
 
 Common.Http.ServerResponse.prototype.respondWith = ( content, type='text/html', status=200, expiration=0 ) ->
   expirationTime = new Date()
-  headers = 
+  headers =
     'Content-Type': type + '; charset=utf-8'
   if expiration > 0
     expirationTime.setTime expirationTime.getTime() + expiration
@@ -27,8 +27,10 @@ Common.Http.ServerResponse.prototype.respondWith = ( content, type='text/html', 
   @write content
   @end()
 
+## START WORKING ON THIS
 Template =
   loadedTemplates : []
+  ## TODO: Search for Template
   getTemplate: ( templateFile ) ->
     templateFile = Common.Path.basename templateFile
     unless @loadedTemplates[ templateFile ]
@@ -39,7 +41,7 @@ Template =
       return false
     unless templateFile.match /\.haml$/gi
       return false
-    baseTemplateFile = Common.Path.basename templateFile 
+    baseTemplateFile = Common.Path.basename templateFile
     template = Common.Fs.readFileSync templateFile, 'utf-8'
     compiledTemplate = Haml.compile template
     optimizedTemplate = Haml.optimize compiledTemplate
@@ -54,6 +56,8 @@ Template =
       params.content = content
       return Haml.execute layout, context, params
     return content
+
+## Register Modules???
 
 class Arcabouco
   config              : {}
