@@ -39,6 +39,7 @@ Template =
     unless @loadedTemplates[ templateFile ]
       return false
     @loadedTemplates[ templateFile ]
+
   loadTemplate: ( templateFile, asTemplateName="" ) ->
     unless templateFile
       return false
@@ -50,18 +51,33 @@ Template =
     template = Common.Fs.readFileSync templateFile, 'utf-8'
     compiledTemplate = Haml.compile template
     optimizedTemplate = Haml.optimize compiledTemplate
-    @loadedTemplates[ baseTemplateFile ] = optimizedTemplate
+    @loadedTemplates[ baseTemplateFile ] =
+      type: 'haml'
+      data: optimizedTemplate
+
+  loadTemplateString: ( templateString, templateName ) ->
+    @loadedTemplates[ templateName ] =
+      type: 'plain'
+      data: templateString
 
   doRender: ( templateFile, context = this, params = {}, layout = 'layout.haml' ) ->
     template = @getTemplate templateFile
     unless template
-      return false
-    content = Haml.execute template, context, params
+      return 'Template Missing: ' + templateFile
+
+    if template.type == 'haml'
+      content = Haml.execute template.data, context, params
+    else
+      content = template.data
+
     if layout
       compiled_layout = @getTemplate layout
       params.content = content
       return Haml.execute layout, context, params
     return content
+
+  doRenderPartial: ( templateFile, context = this, params = {}) ->
+    @doRender templateFile, context, params, false
 
 ## Register Modules???
 
@@ -158,11 +174,16 @@ class Arcabouco
     if controllerFilename.indexOf('.') == 0
       controllerFilename = @config.baseDirectory + controllerFilename.substring(1)
 
-    ControllerObject = require controllerFilename
+    ControllerObject = new (require controllerFilename)()
     ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
     @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
 
   work: ( ControllerObject ) ->
+
+    instanceClass = new ControllerObject()
+    if instanceClass.bootstrap or instanceClass.getRoutes
+      ControllerObject = instanceClass
+   
     ControllerObject.bootstrap( this ) if ControllerObject.bootstrap
     @parseControllerRoutes @controllerInstances.push(ControllerObject)-1
 
