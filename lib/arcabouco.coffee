@@ -2,89 +2,53 @@ Common = require __dirname + '/common'
 Underscore = require 'underscore'
 require __dirname + '/_monkey-patching'
 
-Haml = require 'haml'
-#Common.Http.ServerResponse.prototype.testing = 'BlaBleBli'
+Template = require __dirname + '/template'
 
-Common.Http.ServerResponse.prototype.redirectTo = ( url ) ->
-  @writeHead 302, { 'Location': url }
-  @end()
+class ContentGenerator
+  contentArray        : []
 
-Common.Http.ServerResponse.prototype.respondWith = ( content, type='text/html', status=200, expiration=0 ) ->
-  expirationTime = new Date()
-  headers =
-    'Content-Type': type + '; charset=utf-8'
-  if expiration > 0
-    expirationTime.setTime expirationTime.getTime() + expiration
-    Underscore.extend headers,
-      'Cache-Control' : 'max-age=' + expiration + ', public, most-revalidate'
-      'Expires'       : expirationTime.toGMTString()
-  else
-    Underscore.extend headers,
-      'Cache-Control' : 'max-age=0, no-cache, no-store, must-revalidate'
-      'Pragma'        : 'no-cache'
-      'Expires'       : 'Thu, 01 Jan 1970 00:00:00 GMT'
-  @writeHead status, headers
-  @write content
-  @end()
+  ensureArray: ( where, group ) ->
+    @contentArray[ group ] = [] unless @contentArray[ group ]
+    @contentArray[ group ][ where ] = [] unless @contentArray[ group ][ where ]
+    true
 
-## START WORKING ON THIS
-Template =
-  loadedTemplates : []
+  addContentFor: ( where, data, options = { group: 'default' } ) ->
+    priority = 0
+    priority = options.priority if options.priority
+    group = options.group
 
-  ## TODO: Search for Template
-  ## TODO: Modulize template for support multiple files
+    @ensureArray( where, group )
 
-  getTemplate: ( templateFile ) ->
-    templateFile = Common.Path.basename templateFile
-    unless @loadedTemplates[ templateFile ]
-      return false
-    @loadedTemplates[ templateFile ]
+    type = 'plain'
+    type = 'function' if typeof data == 'function'
+    @contentArray[ group ][ where ].push
+      'type': type
+      data: data
+      priority: priority
 
-  loadTemplate: ( templateFile, asTemplateName="" ) ->
-    unless templateFile
-      return false
-    unless templateFile.match /\.haml$/gi
-      return false
-    baseTemplateFile = Common.Path.basename templateFile
-    if asTemplateName != ""
-      baseTemplateFile = asTemplateName
-    template = Common.Fs.readFileSync templateFile, 'utf-8'
-    compiledTemplate = Haml.compile template
-    optimizedTemplate = Haml.optimize compiledTemplate
-    @loadedTemplates[ baseTemplateFile ] =
-      type: 'haml'
-      data: optimizedTemplate
+  getContentFor: ( where, options = { group: 'default' } ) ->
+    group = options.group
 
-  loadTemplateString: ( templateString, templateName ) ->
-    @loadedTemplates[ templateName ] =
-      type: 'plain'
-      data: templateString
+    @ensureArray( where, group )
 
-  doRender: ( templateFile, context = this, params = {}, layout = 'layout.haml' ) ->
-    template = @getTemplate templateFile
-    unless template
-      return 'Template Missing: ' + templateFile
-
-    if template.type == 'haml'
-      content = Haml.execute template.data, context, params
-    else
-      content = template.data
-
-    if layout
-      compiled_layout = @getTemplate layout
-      params.content = content
-      return Haml.execute layout, context, params
-    return content
-
-  doRenderPartial: ( templateFile, context = this, params = {}) ->
-    @doRender templateFile, context, params, false
-
-## Register Modules???
+    content = ''
+    priorityArray = Underscore.sortBy @contentArray[ group ][ where ],
+      ( obj ) ->
+        return obj.priority
+    for aContent in priorityArray
+      output = ''
+      if aContent.type == 'plain'
+        output = aContent.data
+      else
+        output = aContent.data()
+      content += output
+    content
 
 class Arcabouco
   config              : {}
 
-  Template            : Template
+  Template            : false
+  ContentGenerator    : false
 
   newRoutingAvaiable  : false
   controllerInstances : []
@@ -108,6 +72,11 @@ class Arcabouco
       process.exit(1)
 
     global.objects = []
+
+    @Template = new Template()
+    @ContentGenerator = new ContentGenerator()
+
+    #@content_for = @ContentGenerator.getContentFor
 
     @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/404.haml'), '404'
     @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/500.haml'), '500'
