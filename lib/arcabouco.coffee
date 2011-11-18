@@ -15,12 +15,15 @@ class ContentGenerator
   addContentFor: ( where, data, options = { group: 'default' } ) ->
     priority = 0
     priority = options.priority if options.priority
-    group = options.group
+
+    group = 'default'
+    group = options.group if options.group
 
     @ensureArray( where, group )
 
     type = 'plain'
     type = 'function' if typeof data == 'function'
+
     @contentArray[ group ][ where ].push
       'type': type
       data: data
@@ -35,6 +38,7 @@ class ContentGenerator
     priorityArray = Underscore.sortBy @contentArray[ group ][ where ],
       ( obj ) ->
         return obj.priority
+
     for aContent in priorityArray
       output = ''
       if aContent.type == 'plain'
@@ -78,8 +82,8 @@ class Arcabouco
 
     #@content_for = @ContentGenerator.getContentFor
 
-    @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/404.haml'), '404'
-    @Template.loadTemplate Common.Path.normalize(__dirname + '/../views/500.haml'), '500'
+    @Template.loadTemplate Common.Path.normalize(__dirname + '/../templates/404.haml'), '404'
+    @Template.loadTemplate Common.Path.normalize(__dirname + '/../templates/500.haml'), '500'
 
     setInterval =>
       # TODO: SEPARATE THIS INTO A CLASS

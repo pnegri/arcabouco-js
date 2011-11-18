@@ -1,7 +1,7 @@
 {
   "name" : "arcabouco-js",
   "description" : "scalable microframework in node.js",
-  "version" : "0.6.3",
+  "version" : "0.6.6",
   "author" : "Patrick Negri <patrick@iugu.com.br>",
   "homepage": "http://github.com/pnegri/arcabouco-js",
   "contributors" : [],

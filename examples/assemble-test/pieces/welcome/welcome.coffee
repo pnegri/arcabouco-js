@@ -1,4 +1,4 @@
-WelcomeController =
+class WelcomeController
   index: ( params ) ->
     responder = params.response
     template = params.app.Template

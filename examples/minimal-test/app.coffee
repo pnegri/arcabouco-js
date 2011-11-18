@@ -1,4 +1,4 @@
-arcabouco = require 'arcabouco-js'
+arcabouco = require '../../main.js'
 
 config =
     baseDirectory: __dirname

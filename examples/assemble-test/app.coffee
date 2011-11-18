@@ -1,4 +1,4 @@
-arcabouco = require 'arcabouco-js'
+arcabouco = require '../../main.js'
 
 config =
     baseDirectory: __dirname
@@ -6,7 +6,6 @@ config =
 app = new arcabouco config
 
 app.assemble __dirname + '/pieces'
-
 app.build()
 
 server = app.createServer()
