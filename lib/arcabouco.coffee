@@ -1,8 +1,37 @@
 Common = require __dirname + '/common'
 Underscore = require 'underscore'
 require __dirname + '/_monkey-patching'
+{spawn, exec}  = require 'child_process'
 
 Template = require __dirname + '/template'
+
+class PublicExposer
+  piecesArray         : []
+
+  addPiece: ( pieceFilename, options ) ->
+    priority = 0
+    priority = options.priority if options.priority
+
+    @piecesArray.push
+      filename: pieceFilename
+      priority: priority
+
+  build: (application, development=false) ->
+
+    piecesByPriority = Underscore.sortBy @piecesArray,
+      ( obj ) ->
+        return obj.priority
+
+    outputDir = application.config.baseDirectory + '/cdn/js'
+
+    for pieceDetails in piecesByPriority
+      pieceFilename = pieceDetails.filename
+      exec "coffee --compile -o #{outputDir} #{pieceFilename}"
+
+      baseFilename = Common.Path.basename( pieceFilename, '.coffee' )
+      application.ContentGenerator.addContentFor 'head',
+        "<script src=\"/cdn/js/#{baseFilename}.js\"></script>", { priority: pieceDetails.priority }
+
 
 class ContentGenerator
   contentArray        : []
@@ -53,6 +82,7 @@ class Arcabouco
 
   Template            : false
   ContentGenerator    : false
+  PublicExposer       : false
 
   newRoutingAvaiable  : false
   controllerInstances : []
@@ -76,9 +106,11 @@ class Arcabouco
       process.exit(1)
 
     global.objects = []
+    global.public_exports = []
 
     @Template = new Template()
     @ContentGenerator = new ContentGenerator()
+    @PublicExposer = new PublicExposer()
 
     #@content_for = @ContentGenerator.getContentFor
 
@@ -175,7 +207,7 @@ class Arcabouco
         if valid
           @work require file
 
-  registerObject: ( objectName, object ) ->
+  registerObject : ( objectName, object ) ->
     global.objects[ objectName ] = object
     true
 
@@ -191,7 +223,7 @@ class Arcabouco
       ( match, sub1 ) ->
         params.push sub1
         return '([^\/]+)'
-    buildPattern = buildPattern.replaceLast( '([^\/]+)', '([^$]+)' ) 
+    buildPattern = buildPattern.replaceLast( '([^\/]+)', '([^$]+)' )
     constructedRoute =
       regex : new RegExp '^' + buildPattern + '$'
       params: params
@@ -200,11 +232,13 @@ class Arcabouco
   buildRouting : ->
     orderedRouteNames = Underscore.keys( @routeToMethod ).sort().reverse()
     @avaiableRoutes = []
-    for pattern in orderedRouteNames 
+    for pattern in orderedRouteNames
       @avaiableRoutes.push @contructRoutingForPattern( pattern )
 
   build: ->
     @buildRouting()
+    # TODO => development = true???
+    @PublicExposer.build( this, true )
 
   parseRequest : ( request ) ->
     request.setEncoding 'utf-8'
