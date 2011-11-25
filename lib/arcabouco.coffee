@@ -24,13 +24,18 @@ class PublicExposer
 
     outputDir = application.config.baseDirectory + '/cdn/js'
 
+    c = 0
     for pieceDetails in piecesByPriority
       pieceFilename = pieceDetails.filename
-      exec "coffee --compile -o #{outputDir} #{pieceFilename}"
+      
+      baseFilename = Common.Path.basename( pieceFilename, '.coffee' ) + '-' + c
 
-      baseFilename = Common.Path.basename( pieceFilename, '.coffee' )
+      exec "coffee --compile -p #{pieceFilename} > #{outputDir}/#{baseFilename}.js"
+
       application.ContentGenerator.addContentFor 'head',
         "<script src=\"/cdn/js/#{baseFilename}.js\"></script>", { priority: pieceDetails.priority }
+
+      c = c+1
 
 
 class ContentGenerator
@@ -203,6 +208,8 @@ class Arcabouco
         if file.match /\.coffee/gi
           valid = true
         if file.match /src\//gi
+          valid = false
+        if file.match /\.swp/gi
           valid = false
         if valid
           @work require file
