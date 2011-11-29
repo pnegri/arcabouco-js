@@ -1,0 +1,104 @@
+<!DOCTYPE html>  <html> <head>   <title>arcabouco_request.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="_monkey-fs.html">                 _monkey-fs.coffee               </a>                                           <a class="source" href="_monkey-patching.html">                 _monkey-patching.coffee               </a>                                           <a class="source" href="arcabouco.html">                 arcabouco.coffee               </a>                                           <a class="source" href="arcabouco_content.html">                 arcabouco_content.coffee               </a>                                           <a class="source" href="arcabouco_controller.html">                 arcabouco_controller.coffee               </a>                                           <a class="source" href="arcabouco_object_pool.html">                 arcabouco_object_pool.coffee               </a>                                           <a class="source" href="arcabouco_request.html">                 arcabouco_request.coffee               </a>                                           <a class="source" href="arcabouco_template.html">                 arcabouco_template.coffee               </a>                                           <a class="source" href="common.html">                 common.coffee               </a>                                           <a class="source" href="old_arcabouco.html">                 old_arcabouco.coffee               </a>                                           <a class="source" href="template.html">                 template.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               arcabouco_request.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="nv">Common = </span><span class="nx">require</span> <span class="nx">__dirname</span> <span class="o">+</span> <span class="s">&#39;/common&#39;</span>
+
+<span class="k">class</span> <span class="nx">ArcaboucoRequest</span>
+  <span class="nv">routeToMethod: </span><span class="p">[]</span>
+  <span class="nv">avaiableRoutes: </span><span class="p">[]</span>
+  <span class="nv">newRoutingAvaiable: </span><span class="kc">false</span>
+
+  <span class="nv">addRoutingToMethod: </span><span class="nf">( path, method, indexOfController ) -&gt;</span>
+    <span class="nx">@routeToMethod</span><span class="p">[</span> <span class="nx">path</span> <span class="p">]</span> <span class="o">=</span>
+      <span class="s">&#39;method&#39;</span> <span class="o">:</span> <span class="nx">method</span>
+      <span class="s">&#39;object&#39;</span> <span class="o">:</span> <span class="nx">indexOfController</span>
+    <span class="vi">@newRoutingAvaiable = </span><span class="kc">true</span>
+    <span class="nx">path</span>
+
+  <span class="nv">parseRoutes: </span><span class="nf">( index, Application ) -&gt;</span>
+    <span class="nv">ControllerObject = </span><span class="nx">Application</span><span class="p">.</span><span class="nx">Controller</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span> <span class="nx">index</span> <span class="p">)</span>
+    <span class="nx">unless</span> <span class="nx">ControllerObject</span><span class="p">.</span><span class="nx">getRoutes</span>
+      <span class="k">return</span> <span class="kc">false</span>
+
+    <span class="nv">controllerRoutes = </span><span class="nx">ControllerObject</span><span class="p">.</span><span class="nx">getRoutes</span><span class="p">()</span>
+    <span class="k">for</span> <span class="nx">path</span> <span class="k">of</span> <span class="nx">controllerRoutes</span>
+      <span class="nx">@addRoutingToMethod</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">controllerRoutes</span><span class="p">[</span> <span class="nx">path</span> <span class="p">],</span> <span class="nx">index</span>
+
+  <span class="nv">constructRoutingForPattern : </span><span class="nf">( pattern ) -&gt;</span>
+    <span class="nv">params = </span><span class="p">[]</span>
+    <span class="nv">buildPattern = </span><span class="nx">pattern</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/\{(.*?)\}/g</span><span class="p">,</span>
+      <span class="nf">( match, sub1 ) -&gt;</span>
+        <span class="nx">params</span><span class="p">.</span><span class="nx">push</span> <span class="nx">sub1</span>
+        <span class="k">return</span> <span class="s">&#39;([^\/]+)&#39;</span>
+    <span class="nv">buildPattern = </span><span class="nx">buildPattern</span><span class="p">.</span><span class="nx">replaceLast</span><span class="p">(</span> <span class="s">&#39;([^\/]+)&#39;</span><span class="p">,</span> <span class="s">&#39;([^$]+)&#39;</span> <span class="p">)</span>
+    <span class="nv">constructedRoute =</span>
+      <span class="nv">regex : </span><span class="k">new</span> <span class="nb">RegExp</span> <span class="s">&#39;^&#39;</span> <span class="o">+</span> <span class="nx">buildPattern</span> <span class="o">+</span> <span class="s">&#39;$&#39;</span>
+      <span class="nv">params: </span><span class="nx">params</span>
+      <span class="nv">index : </span><span class="nx">pattern</span>
+
+  <span class="nv">rebuildRoutes: </span><span class="o">-&gt;</span>
+    <span class="nv">orderedRouteNames = </span><span class="nx">Common</span><span class="p">.</span><span class="nx">_</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span> <span class="nx">@routeToMethod</span> <span class="p">).</span><span class="nx">sort</span><span class="p">().</span><span class="nx">reverse</span><span class="p">()</span>
+    <span class="vi">@avaiableRoutes = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">pattern</span> <span class="k">in</span> <span class="nx">orderedRouteNames</span>
+      <span class="nx">@avaiableRoutes</span><span class="p">.</span><span class="nx">push</span> <span class="nx">@constructRoutingForPattern</span><span class="p">(</span> <span class="nx">pattern</span> <span class="p">)</span>
+
+  <span class="nv">callMethodForRoute : </span><span class="nf">( route, params, Controller ) -&gt;</span>
+    <span class="k">if</span> <span class="nx">@routeToMethod</span><span class="p">[</span> <span class="nx">route</span><span class="p">.</span><span class="nx">index</span> <span class="p">]</span>
+      <span class="nv">ControllerIndex = </span><span class="nx">@routeToMethod</span><span class="p">[</span> <span class="nx">route</span><span class="p">.</span><span class="nx">index</span> <span class="p">].</span><span class="nx">object</span>
+      <span class="nv">ControllerObject = </span><span class="nx">Controller</span><span class="p">.</span><span class="nx">get</span> <span class="nx">ControllerIndex</span>
+      <span class="nx">ControllerObject</span><span class="p">[</span> <span class="nx">@routeToMethod</span><span class="p">[</span> <span class="nx">route</span><span class="p">.</span><span class="nx">index</span> <span class="p">].</span><span class="nx">method</span> <span class="p">](</span> <span class="nx">params</span> <span class="p">)</span>
+    <span class="k">else</span>
+      <span class="kc">false</span>
+
+  <span class="nv">parseRequest : </span><span class="nf">( request ) -&gt;</span>
+    <span class="nx">request</span><span class="p">.</span><span class="nx">setEncoding</span> <span class="s">&#39;utf-8&#39;</span>
+    <span class="nv">url = </span><span class="nx">Common</span><span class="p">.</span><span class="nx">Url</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">,</span> <span class="kc">true</span>
+    <span class="nv">request.documentRequested = </span><span class="nx">url</span><span class="p">.</span><span class="nx">pathname</span>
+    <span class="nv">request.query = </span><span class="nx">url</span><span class="p">.</span><span class="nx">query</span>
+
+  <span class="nv">buildParamsForRequest: </span><span class="nf">( route, args, otherParams ) -&gt;</span>
+    <span class="nv">params = </span><span class="p">{}</span>
+    <span class="k">for</span> <span class="nx">index</span> <span class="k">of</span> <span class="nx">route</span><span class="p">.</span><span class="nx">params</span>
+      <span class="nx">params</span><span class="p">[</span> <span class="nx">route</span><span class="p">.</span><span class="nx">params</span><span class="p">[</span> <span class="nx">index</span> <span class="p">]</span> <span class="p">]</span> <span class="o">=</span> <span class="nx">args</span><span class="p">[</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">index</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> <span class="p">]</span>
+    <span class="nx">Common</span><span class="p">.</span><span class="nx">_</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span> <span class="nx">params</span><span class="p">,</span> <span class="nx">otherParams</span> <span class="p">)</span>
+    <span class="nx">params</span>
+
+
+  <span class="nv">dispatch: </span><span class="nf">( request, response ) -&gt;</span>
+    
+    <span class="k">if</span> <span class="nx">@newRoutingAvaiable</span>
+      <span class="nx">@rebuildRoutes</span><span class="p">()</span>
+      <span class="vi">@newRoutingAvaiable = </span><span class="kc">false</span>
+
+    <span class="nv">data = </span><span class="s">&#39;&#39;</span>
+    <span class="nx">request</span><span class="p">.</span><span class="nx">addListener</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="p">(</span> <span class="nx">data_chunk</span> <span class="p">)</span> <span class="o">=&gt;</span>
+      <span class="nx">data</span> <span class="o">+=</span> <span class="nx">data_chunk</span>
+
+    <span class="nx">@parseRequest</span><span class="p">(</span> <span class="nx">request</span> <span class="p">)</span>
+
+    <span class="nx">request</span><span class="p">.</span><span class="nx">addListener</span> <span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="o">=&gt;</span>
+
+      <span class="nv">hasRouted = </span><span class="kc">false</span>
+
+      <span class="k">for</span> <span class="nx">route</span> <span class="k">in</span> <span class="nx">@avaiableRoutes</span>
+        <span class="nv">routeMatches = </span><span class="nx">route</span><span class="p">.</span><span class="nx">regex</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span> <span class="nx">request</span><span class="p">.</span><span class="nx">documentRequested</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="nx">routeMatches</span>
+          <span class="nv">params = </span><span class="nx">@buildParamsForRequest</span><span class="p">(</span> <span class="nx">route</span><span class="p">,</span> <span class="nx">routeMatches</span><span class="p">,</span> <span class="p">{</span>
+            <span class="nv">request  : </span><span class="nx">request</span>
+            <span class="nv">response : </span><span class="nx">response</span>
+            <span class="nv">route    : </span><span class="nx">route</span><span class="p">.</span><span class="nx">index</span>
+            <span class="nv">app      : </span><span class="k">this</span>
+          <span class="p">})</span>
+          <span class="k">try</span>        <span class="c1"># Execute the method in a sandbox</span>
+            <span class="nv">hasRouted = </span><span class="nx">@callMethodForRoute</span><span class="p">(</span> <span class="nx">route</span><span class="p">,</span> <span class="nx">params</span><span class="p">,</span> <span class="nx">request</span><span class="p">.</span><span class="nx">application</span><span class="p">.</span><span class="nx">Controller</span> <span class="p">)</span> <span class="nx">unless</span> <span class="nx">hasRouted</span>
+          <span class="k">catch</span> <span class="nx">error</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>@respondWithError response</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nx">response</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">500</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;Content-Type&#39;</span><span class="o">:</span> <span class="s">&#39;text/plain&#39;</span><span class="p">}</span>
+            <span class="nx">response</span><span class="p">.</span><span class="nx">end</span> <span class="s">&#39;Testing: 500&#39;</span>
+            <span class="nv">hasRouted = </span><span class="kc">true</span>
+        
+        <span class="k">if</span> <span class="nx">hasRouted</span>
+          <span class="k">break</span>
+
+      <span class="nx">unless</span> <span class="nx">hasRouted</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">writeHead</span> <span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;Content-Type&#39;</span><span class="o">:</span> <span class="s">&#39;text/plain&#39;</span><span class="p">}</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">end</span> <span class="s">&#39;Testing: Not Found Page&#39;</span>
+
+<span class="nv">module.exports = </span><span class="nx">ArcaboucoRequest</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

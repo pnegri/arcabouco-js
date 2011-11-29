@@ -12,7 +12,6 @@ config =
 app = new arcabouco config
 
 app.work require 'screw-node-static'
-app.build()
 
 server = app.createServer()
 server.listen 8888
