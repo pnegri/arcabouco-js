@@ -61,9 +61,13 @@ class Arcabouco
       return false unless @ObjectPool
       @ObjectPool.build( this, development )
 
-    registerObject       : ( filename, options = 0 ) ->
+    registerObject       : ( object, options = {} ) ->
       return false unless @ObjectPool
-      @ObjectPool.registerObject filename, options
+      @ObjectPool.registerObject object, options
+
+    getObject            : ( object ) ->
+      return false unless @ObjectPool
+      @ObjectPool.getObject object
 
     #registerObject      : null
     #createObject        : null

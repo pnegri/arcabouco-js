@@ -6,13 +6,41 @@ class ArcaboucoObjectPool
   piecesArray         : []
   objects             : []
 
-  registerObject: ( pieceFilename, options ) ->
+  registerObject: ( object, options = {} ) ->
     priority = 0
     priority = options.priority if options.priority
 
-    @piecesArray.push
-      filename: pieceFilename
-      priority: priority
+    remote = false
+    remote = options.remote if options.remote
+
+    name = ""
+    name = options.name if options.name
+
+    # TODO: Object Register must detect if its a file or object
+    if remote or (typeof(object) == "string")
+      @piecesArray.push
+        filename: object
+        priority: priority
+    else
+      ArcaboucoObject = object
+      isInstanceable = false
+      try
+        instanceObject = new ArcaboucoObject()
+        if instanceObject.isObject
+          isInstanceable = true
+
+      @objects[ name ] = (
+        object: object
+        instanceable: isInstanceable
+      )
+
+  getObject: ( object ) ->
+    return false unless @objects[ object ]
+
+    if @objects[ object ].instanceable
+      return new @objects[ object ]['object']
+    else
+      return @objects[ object ]['object']
 
   build: (application, development=false) ->
 
