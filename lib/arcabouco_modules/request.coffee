@@ -57,7 +57,7 @@ class ArcaboucoRequest
     params = {}
     for index of route.params
       params[ route.params[ index ] ] = args[ parseInt(index)+1 ]
-    Common._.extend( params, otherParams.request.query )
+    Common._.extend( params, otherParams )
     params
 
 
