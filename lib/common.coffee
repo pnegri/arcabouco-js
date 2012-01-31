@@ -15,6 +15,7 @@ Common =
   Fs   : require 'fs'
   Path : require 'path'
   Url  : require 'url'
+  Query: require 'querystring'
   Crypt: require 'crypto'
   _    : require 'underscore'     # Enable Underscore Library using Common._
 

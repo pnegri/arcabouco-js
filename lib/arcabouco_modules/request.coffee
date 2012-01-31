@@ -47,11 +47,15 @@ class ArcaboucoRequest
     else
       false
 
-  parseRequest : ( request ) ->
+  parseRequest : ( request, data ) ->
     request.setEncoding 'utf-8'
     url = Common.Url.parse request.url, true
     request.documentRequested = url.pathname
-    request.query = url.query
+    
+    if request.method == 'POST'
+      request.query = Common.Query.parse(data)
+    else
+      request.query = url.query
 
   buildParamsForRequest: ( route, args, otherParams ) ->
     params = {}
@@ -71,9 +75,9 @@ class ArcaboucoRequest
     request.addListener 'data', ( data_chunk ) =>
       data += data_chunk
 
-    @parseRequest( request )
-
     request.addListener 'end', =>
+
+      @parseRequest( request, data )
 
       hasRouted = false
 
