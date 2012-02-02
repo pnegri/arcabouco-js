@@ -18,8 +18,15 @@ class ArcaboucoObjectPool
 
     # TODO: Object Register must detect if its a file or object
     if remote or (typeof(object) == "string")
+
+      filename_prefix = ''
+      filename_parts = object.split('/')
+      if filename_parts.length > 1
+        filename_prefix = filename_parts[ filename_parts.length - 3 ] + '.'
+
       @piecesArray.push
         filename: object
+        filename_prefix: filename_prefix
         priority: priority
     else
       ArcaboucoObject = object
@@ -35,7 +42,8 @@ class ArcaboucoObjectPool
       )
 
   getObject: ( object ) ->
-    return false unless @objects[ object ]
+    unless @objects[ object ]
+      return false
 
     if @objects[ object ].instanceable
       return new @objects[ object ]['object']
@@ -50,17 +58,42 @@ class ArcaboucoObjectPool
 
     outputDir = application.config.baseDirectory + '/cdn/js'
 
+    console.log 'JS compilation started'
+
     c = 0
+    buildReady = () ->
+      c = c-1
+      if c == 0
+        console.log('JS generation ready')
+
     for pieceDetails in piecesByPriority
       pieceFilename = pieceDetails.filename
-      
-      baseFilename = Common.Path.basename( pieceFilename, '.coffee' ) + '-' + c
+      pieceFilenamePrefix = pieceDetails.filename_prefix
 
-      exec "coffee --compile -p #{pieceFilename} > #{outputDir}/#{baseFilename}.js"
+      file_mtime = 0
+      file_stats = Common.Fs.statSync( pieceFilename )
+      if file_stats
+        file_mtime = file_stats.mtime.getTime()
+
+      baseFilename = Common.Path.basename( pieceFilename, '.coffee' ) + '-' + file_mtime
+      target_filename = "#{outputDir}/#{pieceFilenamePrefix}#{baseFilename}.js"
+
+      file_exists = false
+
+      try
+        if Common.Fs.statSync( target_filename )
+          file_exists = true
+      catch e
+        file_exists = false
+
+      unless file_exists
+        exec "coffee --compile -p #{pieceFilename} > #{target_filename}.js", [], buildReady
+        c = c+1
 
       application.Content.putContentFor 'head',
-        "<script src=\"/cdn/js/#{baseFilename}.js\"></script>", { priority: pieceDetails.priority }
+        "<script src=\"/cdn/js/#{pieceFilenamePrefix}#{baseFilename}.js\"></script>", { priority: pieceDetails.priority }
 
-      c = c+1
+    if c == 0
+      console.log 'JS generation ready'
 
 module.exports = ArcaboucoObjectPool
