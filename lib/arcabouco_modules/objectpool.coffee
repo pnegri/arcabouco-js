@@ -75,7 +75,9 @@ class ArcaboucoObjectPool
       if file_stats
         file_mtime = file_stats.mtime.getTime()
 
-      baseFilename = Common.Path.basename( pieceFilename, '.coffee' ) + '-' + file_mtime
+      baseFilename = Common.Path.basename( pieceFilename ) + '-' + file_mtime
+      baseFilename = baseFilename.replace(".coffee","")
+      baseFilename = baseFilename.replace(".js","")
       target_filename = "#{outputDir}/#{pieceFilenamePrefix}#{baseFilename}.js"
 
       file_exists = false
@@ -87,7 +89,10 @@ class ArcaboucoObjectPool
         file_exists = false
 
       unless file_exists
-        exec "coffee --compile -p #{pieceFilename} > #{target_filename}.js", [], buildReady
+        if pieceFilename.indexOf(".js")
+          exec "cp #{pieceFilename} #{target_filename}"
+        else if pieceFilename.indexOf(".coffee")
+          exec "coffee --compile -p #{pieceFilename} > #{target_filename}.js", [], buildReady
         c = c+1
 
       application.Content.putContentFor 'head',
