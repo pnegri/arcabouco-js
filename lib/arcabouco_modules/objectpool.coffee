@@ -79,6 +79,7 @@ class ArcaboucoObjectPool
       baseFilename = baseFilename.replace(".coffee","")
       baseFilename = baseFilename.replace(".js","")
       target_filename = "#{outputDir}/#{pieceFilenamePrefix}#{baseFilename}.js"
+      target_base_filename = Common.Path.basename( target_filename )
 
       file_exists = false
 
@@ -89,14 +90,14 @@ class ArcaboucoObjectPool
         file_exists = false
 
       unless file_exists
-        if pieceFilename.indexOf(".js")
-          exec "cp #{pieceFilename} #{target_filename}"
-        else if pieceFilename.indexOf(".coffee")
-          exec "coffee --compile -p #{pieceFilename} > #{target_filename}.js", [], buildReady
         c = c+1
+        if pieceFilename.indexOf(".js") != -1
+          console.log 'copy a js'
+        else if pieceFilename.indexOf(".coffee") != -1
+          exec "coffee --compile -p #{pieceFilename} > #{target_filename}", [], buildReady
 
       application.Content.putContentFor 'head',
-        "<script src=\"/cdn/js/#{pieceFilenamePrefix}#{baseFilename}.js\"></script>", { priority: pieceDetails.priority }
+        "<script src=\"/cdn/js/#{target_base_filename}\"></script>", { priority: pieceDetails.priority }
 
     if c == 0
       console.log 'JS generation ready'
