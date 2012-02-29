@@ -92,7 +92,7 @@ class ArcaboucoObjectPool
       unless file_exists
         c = c+1
         if pieceFilename.indexOf(".js") != -1
-          console.log 'copy a js'
+          exec "cp #{pieceFilename} #{target_filename}", [], buildReady
         else if pieceFilename.indexOf(".coffee") != -1
           exec "coffee --compile -p #{pieceFilename} > #{target_filename}", [], buildReady
 
