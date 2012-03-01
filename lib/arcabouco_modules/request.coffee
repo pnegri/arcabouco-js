@@ -1,5 +1,8 @@
 Common = require __dirname + '/../common'
 
+Common.Http.globalAgent.maxSockets = 1024
+Common.Https.globalAgent.maxSockets = 1024
+
 class ArcaboucoRequest
   routeToMethod: []
   avaiableRoutes: []

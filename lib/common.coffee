@@ -12,6 +12,7 @@
 Common =
   Os   : require 'os'
   Http : require 'http'
+  Https: require 'https'
   Fs   : require 'fs'
   Path : require 'path'
   Url  : require 'url'

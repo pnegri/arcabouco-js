@@ -60,10 +60,13 @@ class ArcaboucoObjectPool
 
     console.log 'JS compilation started'
 
-    c = 0
-    buildReady = () ->
-      c = c-1
-      if c == 0
+    commands = []
+
+    buildReady = (error,a,b) ->
+      if commands.length > 0
+        cmd = commands.pop()
+        exec cmd, [], buildReady
+      else if commands.length == 0
         console.log('JS generation ready')
 
     for pieceDetails in piecesByPriority
@@ -90,16 +93,17 @@ class ArcaboucoObjectPool
         file_exists = false
 
       unless file_exists
-        c = c+1
         if pieceFilename.indexOf(".js") != -1
-          exec "cp #{pieceFilename} #{target_filename}", [], buildReady
+          commands.push( "cp #{pieceFilename} #{target_filename}" )
         else if pieceFilename.indexOf(".coffee") != -1
-          exec "coffee --compile -p #{pieceFilename} > #{target_filename}", [], buildReady
+          commands.push( "coffee --compile -p #{pieceFilename} > #{target_filename}" )
 
       application.Content.putContentFor 'head',
         "<script src=\"/cdn/js/#{target_base_filename}\"></script>", { priority: pieceDetails.priority }
 
-    if c == 0
-      console.log 'JS generation ready'
+    if (commands.length)
+      buildReady()
+    else
+      console.log "Skiped Pre-Proccess Assets"
 
 module.exports = ArcaboucoObjectPool
