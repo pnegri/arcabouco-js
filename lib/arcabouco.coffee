@@ -125,6 +125,14 @@ class Arcabouco
         localRequirement = require __dirname + "/arcabouco_modules/" + name.toLowerCase()
         this[ name ] = new localRequirement()
 
+    environment: () ->
+      app_environment = process.env.SERVER_ENV
+      if app_environment
+        app_environment = app_environment.toLowerCase()
+      else
+        app_environment = 'development'
+      app_environment
+
     # The Application Fabric
     # ----------------------
     #
@@ -132,6 +140,10 @@ class Arcabouco
     # These configurations can change everything because all
     # our functions are just a proxy to internal components.
     constructor         : ( @config = {} ) ->
+      if @config[@environment()]
+        @config = @config[@environment()]
+
+      console.log @config
 
       # Try to use some user defined packages if they are sent
       packages = if @config.packages then @config.packages else {}
