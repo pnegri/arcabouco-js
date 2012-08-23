@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/pnegri/arcabouco-js.png)](http://travis-ci.org/pnegri/arcabouco-js)
 node.js - Arcabouco.JS microframework
 
 Warning: Alpha Version - Do not use in production
